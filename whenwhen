@@ -1,0 +1,49 @@
+use NORTHWND1
+create function PAISCLIENTES(@Country nvarchar(15))
+returns table
+return
+select CompanyName from Customers where Country=@Country
+
+select count(*) quantity from dbo.PAISCLIENTES('Brazil')
+go;
+
+create view QuantityByYearCategoryName
+as
+select CategoryName,year(OrderDate) Year, sum(Quantity) Total from [Order Details] as OD 
+join Products as P on OD.ProductID = P.ProductID 
+join Categories C on P.CategoryID=C.CategoryID
+join Orders O on OD.OrderID=O.OrderID
+group by CategoryName, year(OrderDate)
+go;
+
+create function FCategoryNameWithMinQuantity(@Year int) returns table
+return
+select CategoryName, Total from QuantityByYearCategoryName 
+where year = @Year and Total=(select min(Total) from QuantityByYearCategoryName
+where year=@Year)
+
+select * from dbo.FCategoryNameWithMinQuantity('2018')
+go;
+
+
+
+create procedure RELACIONCATEGORY
+as
+DECLARE @nombre nvarchar(15)
+select * from Products WHERE Products.CategoryID LIKE @nombre
+
+select * from Products
+
+execute RELACIONCATEGORY
+go;
+
+
+create procedure USPProductsBCategoryName
+@CategoryName nvarchar(15)
+as
+select ProductName
+from Products P 
+	join Categories C on P.CategoryID=C.CategoryID
+where CategoryName =  @CategoryName
+
+exec USPProductsBCategoryName 'Beverages'
